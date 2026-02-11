@@ -27,3 +27,8 @@ UPDATE_MODE = "tail"                # 更新模式: tail(只补充尾部), full(
 
 # ========== 数据源配置 ==========
 PREFERRED_SOURCE = "baostock"       # 优先数据源: baostock(默认), akshare, yfinance
+
+# ========== TuShare 配置 ==========
+# 获取 Token: https://tushare.pro/user/token
+# 注册账号: https://tushare.pro/register
+TUSHARE_TOKEN = "74add840cf27ee0b1b242c61403379efa69a0a7df1b3cc8c6360405f"                  # TuShare API Token（留空则从环境变量读取）

@@ -93,10 +93,6 @@ from utils import (
     merge_and_save_data
 )
 
-# ========== 常量定义 ==========
-# 不限制错误消息长度，以便完整查看错误信息
-MAX_FAILED_DISPLAY = 10        # 失败列表最大显示数量
-
 # ========== 日志配置 ==========
 logging.basicConfig(
     level=logging.DEBUG,  # DEBUG: 显示详细调试信息 | INFO: 只显示关键信息（推荐）
@@ -325,10 +321,8 @@ if BATCH_SIZE > 0 and end_index < total_stock_length:
 
 if failed_stocks:
     logger.info(f"\n失败列表:")
-    for stock in failed_stocks[:MAX_FAILED_DISPLAY]:
+    for stock in failed_stocks:
         logger.info(f"  - {stock['code']} {stock['name']}: {stock['reason']}")
-    if len(failed_stocks) > MAX_FAILED_DISPLAY:
-        logger.info(f"  ... 还有 {len(failed_stocks) - MAX_FAILED_DISPLAY} 只股票失败")
     
     # 保存失败列表
     try:

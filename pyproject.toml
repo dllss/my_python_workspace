@@ -15,6 +15,7 @@ yfinance = "^1.1.0"
 akshare = "^1.18.23"
 baostock = "^0.8.9"
 exchange-calendars = "^4.13.1"
+tushare = "^1.4.24"
 
 [build-system]
 requires = ["poetry-core>=2.0.0"]

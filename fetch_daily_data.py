@@ -35,15 +35,12 @@ import akshare as ak
 from config import OUTPUT_DIR, CN_DIR
 from utils import MetadataManager, save_dataframe, get_safe_end_date, filter_suspended_trading_data
 
-# ========== 日志配置 ==========
+# # ========== 日志配置 ==========
 logging.basicConfig(
     level=logging.INFO,
     format='%(message)s'
 )
 logger = logging.getLogger(__name__)
-
-# ========== 常量定义 ==========
-# 不限制错误消息长度，以便完整查看错误信息
 
 def fetch_all_stocks_daily_data(target_date: str = None) -> pd.DataFrame:
     """
@@ -57,8 +54,13 @@ def fetch_all_stocks_daily_data(target_date: str = None) -> pd.DataFrame:
     """
     try:
         logger.info("正在获取所有A股实时行情数据...")
+        logger.info("数据源: AkShare (东方财富批量接口)")
+        logger.info("⚠️  如果遇到网络错误:")
+        logger.info("   1. 检查网络连接是否正常")
+        logger.info("   2. 或使用 'make history' (使用 baostock，更稳定)")
+        logger.info("   3. 详见 PROXY_FIX.md")
         
-        # 使用 AkShare 批量接口
+        # 使用 AkShare 批量接口（可能需要代理）
         df = ak.stock_zh_a_spot_em()
         
         if df.empty:
@@ -66,6 +68,21 @@ def fetch_all_stocks_daily_data(target_date: str = None) -> pd.DataFrame:
             return None
         
         logger.info(f"成功获取 {len(df)} 只股票的数据")
+        
+        # 保存原始数据预览到临时文件
+        import tempfile
+        temp_file = os.path.join(tempfile.gettempdir(), 'akshare_daily_data_preview.txt')
+        with open(temp_file, 'w', encoding='utf-8') as f:
+            f.write("="*80 + "\n")
+            f.write("AkShare 原始数据预览（前10条）:\n")
+            f.write("="*80 + "\n")
+            f.write(df.head(10).to_string() + "\n\n")
+            f.write("列名列表:\n")
+            f.write(str(df.columns.tolist()) + "\n")
+            f.write("="*80 + "\n")
+            f.write(f"\n数据形状: {df.shape}\n")
+            f.write(f"总股票数: {len(df)}\n")
+        logger.info(f"原始数据预览已保存到: {temp_file}")
         
         # 标准化列名（AkShare 的列名可能不同）
         # 需要根据实际返回的列名进行映射

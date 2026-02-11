@@ -1,4 +1,4 @@
-.PHONY: list history daily single install update clean check-date check-sources rebuild-metadata analyze-names clean-suspended
+.PHONY: list history daily daily-tushare single install update clean check-date check-sources rebuild-metadata analyze-names clean-suspended install-tushare
 
 # 获取股票列表（第一步）
 list:
@@ -11,6 +11,10 @@ history:
 # 每日增量更新（日常使用，推荐）
 daily:
 	@poetry run python fetch_daily_data.py
+
+# 每日增量更新（TuShare版，更稳定）
+daily-tushare:
+	@poetry run python fetch_daily_data_tushare.py
 
 # 获取单只股票数据
 # 用法: make single CODE=000001 或 make single CODE=600519 START=20240101 END=20240131
@@ -43,6 +47,18 @@ clean-suspended:
 # 安装依赖
 install:
 	@poetry install
+
+# 安装 TuShare（用于 daily-tushare）
+install-tushare:
+	@echo "正在安装 TuShare..."
+	@poetry add tushare
+	@echo "✅ TuShare 已安装"
+	@echo ""
+	@echo "下一步："
+	@echo "  1. 注册账号: https://tushare.pro/register"
+	@echo "  2. 获取 token: https://tushare.pro/user/token"
+	@echo "  3. 配置 token: export TUSHARE_TOKEN='你的token'"
+	@echo "  4. 运行: make daily-tushare"
 
 # 更新所有依赖（包括交易日历）
 update:
