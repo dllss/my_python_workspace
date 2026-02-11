@@ -1,0 +1,32 @@
+# 虚拟环境
+venv/
+env/
+ENV/
+.venv/
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# 分发/打包
+dist/
+build/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 股票数据文件
+data/
+# 元数据文件
+.metadata.json

@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "my-python-workspace"
+version = "0.1.0"
+description = "Python股票数据分析项目"
+authors = ["shuai.liang"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4"
+pandas = ">=2.0"
+numpy = ">=1.24,<2.5"
+matplotlib = "^3.10.8"
+yfinance = "^1.1.0"
+akshare = "^1.18.23"
+baostock = "^0.8.9"
+exchange-calendars = "^4.13.1"
+
+[build-system]
+requires = ["poetry-core>=2.0.0"]
+build-backend = "poetry.core.masonry.api"
