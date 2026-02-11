@@ -70,7 +70,7 @@ class MultiSourceFetcher:
                 logger.warning("⚠️  Akshare 数据源不可用")
         except Exception as e:
             status['akshare'] = False
-            logger.error(f"❌ Akshare 数据源检查失败: {str(e)[:100]}")
+            logger.error(f"❌ Akshare 数据源检查失败: {str(e)}")
         
         # 检查 baostock
         try:
@@ -83,7 +83,7 @@ class MultiSourceFetcher:
                 logger.warning("⚠️  Baostock 数据源不可用")
         except Exception as e:
             status['baostock'] = False
-            logger.error(f"❌ Baostock 数据源检查失败: {str(e)[:100]}")
+            logger.error(f"❌ Baostock 数据源检查失败: {str(e)}")
         
         # 检查 yfinance
         try:
@@ -94,7 +94,7 @@ class MultiSourceFetcher:
                 logger.warning("⚠️  YFinance 数据源不可用")
         except Exception as e:
             status['yfinance'] = False
-            logger.error(f"❌ YFinance 数据源检查失败: {str(e)[:100]}")
+            logger.error(f"❌ YFinance 数据源检查失败: {str(e)}")
         
         return status
     
@@ -173,7 +173,7 @@ class MultiSourceFetcher:
             except Exception as e:
                 # 数据源异常，尝试下一个
                 has_exception = True
-                error_msg = str(e)[:100]
+                error_msg = str(e)
                 failed_sources.append((source_name, error_msg))
                 logger.warning(f"    ▶️ 尝试从 {source_name} 获取 {stock_code} 的数据 => ⚠️  失败: {error_msg}")
                 continue

@@ -43,7 +43,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ========== 常量定义 ==========
-MAX_ERROR_MESSAGE_LENGTH = 50
+# 不限制错误消息长度，以便完整查看错误信息
 
 def fetch_all_stocks_daily_data(target_date: str = None) -> pd.DataFrame:
     """
@@ -105,7 +105,7 @@ def fetch_all_stocks_daily_data(target_date: str = None) -> pd.DataFrame:
         return df
         
     except Exception as e:
-        logger.error(f"获取数据失败: {str(e)[:MAX_ERROR_MESSAGE_LENGTH]}")
+        logger.error(f"获取数据失败: {str(e)}")
         return None
 
 
@@ -183,7 +183,7 @@ def update_all_stock_files(df_all: pd.DataFrame, cn_dir: str, metadata_mgr: Meta
             
         except Exception as e:
             fail_count += 1
-            logger.debug(f"更新 {stock_code} 失败: {str(e)[:MAX_ERROR_MESSAGE_LENGTH]}")
+            logger.debug(f"更新 {stock_code} 失败: {str(e)}")
             continue
     
     print()  # 换行
@@ -228,25 +228,25 @@ def main():
     
     print()
     
-    # 更新到各个文件
-    stats = update_all_stock_files(df_all, cn_dir, metadata_mgr)
+    # # 更新到各个文件
+    # stats = update_all_stock_files(df_all, cn_dir, metadata_mgr)
     
-    # 显示统计信息
-    logger.info("=" * 60)
-    logger.info("统计信息")
-    logger.info("=" * 60)
-    logger.info(f"新增: {stats['success']} 只")
-    logger.info(f"更新: {stats['update']} 只")
-    logger.info(f"跳过: {stats['skip']} 只（已是最新）")
-    logger.info(f"失败: {stats['fail']} 只")
-    logger.info(f"总计: {stats['total']} 只")
-    logger.info("=" * 60)
+    # # 显示统计信息
+    # logger.info("=" * 60)
+    # logger.info("统计信息")
+    # logger.info("=" * 60)
+    # logger.info(f"新增: {stats['success']} 只")
+    # logger.info(f"更新: {stats['update']} 只")
+    # logger.info(f"跳过: {stats['skip']} 只（已是最新）")
+    # logger.info(f"失败: {stats['fail']} 只")
+    # logger.info(f"总计: {stats['total']} 只")
+    # logger.info("=" * 60)
     
-    # 提示
-    if stats['fail'] > 0:
-        logger.warning(f"⚠️  有 {stats['fail']} 只股票更新失败")
-    else:
-        logger.info("✅ 所有股票数据更新完成")
+    # # 提示
+    # if stats['fail'] > 0:
+    #     logger.warning(f"⚠️  有 {stats['fail']} 只股票更新失败")
+    # else:
+    #     logger.info("✅ 所有股票数据更新完成")
 
 
 if __name__ == "__main__":

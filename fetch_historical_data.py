@@ -94,8 +94,7 @@ from utils import (
 )
 
 # ========== 常量定义 ==========
-MAX_ERROR_MESSAGE_LENGTH = 50  # 错误信息最大显示长度
-MAX_REASON_LENGTH = 100        # 失败原因最大保存长度
+# 不限制错误消息长度，以便完整查看错误信息
 MAX_FAILED_DISPLAY = 10        # 失败列表最大显示数量
 
 # ========== 日志配置 ==========
@@ -269,17 +268,17 @@ with MultiSourceFetcher(preferred_source=PREFERRED_SOURCE) as multi_fetcher:
             logger.warning("\n\n⚠️  用户中断，正在保存已处理的数据...")
             break
         except FileNotFoundError as e:
-            logger.error(f"❌ 文件错误: {str(e)[:MAX_ERROR_MESSAGE_LENGTH]}")
+            logger.error(f"❌ 文件错误: {str(e)}")
             fail_count += 1
-            failed_stocks.append({"code": stock_code, "name": stock_name, "reason": f"文件错误: {str(e)[:MAX_REASON_LENGTH]}"})
+            failed_stocks.append({"code": stock_code, "name": stock_name, "reason": f"文件错误: {str(e)}"})
         except pd.errors.EmptyDataError as e:
-            logger.error(f"❌ 数据为空: {str(e)[:MAX_ERROR_MESSAGE_LENGTH]}")
+            logger.error(f"❌ 数据为空: {str(e)}")
             fail_count += 1
-            failed_stocks.append({"code": stock_code, "name": stock_name, "reason": f"数据为空: {str(e)[:MAX_REASON_LENGTH]}"})
+            failed_stocks.append({"code": stock_code, "name": stock_name, "reason": f"数据为空: {str(e)}"})
         except Exception as e:
-            logger.error(f"❌ 异常: {str(e)[:MAX_ERROR_MESSAGE_LENGTH]}")
+            logger.error(f"❌ 异常: {str(e)}")
             fail_count += 1
-            failed_stocks.append({"code": stock_code, "name": stock_name, "reason": str(e)[:MAX_REASON_LENGTH]})
+            failed_stocks.append({"code": stock_code, "name": stock_name, "reason": str(e)})
     
     # 获取数据源使用统计
     source_stats = multi_fetcher.get_stats()

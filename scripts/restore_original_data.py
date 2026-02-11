@@ -74,7 +74,7 @@ def restore_original_data_for_stock(stock_code: str, stock_name: str, output_dir
             return True
     
     except Exception as e:
-        print(f"  ❌ 错误: {str(e)[:50]}")
+        print(f"  ❌ 错误: {str(e)}")
         return False
 
 

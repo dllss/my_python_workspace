@@ -92,7 +92,7 @@ for source_name, fetcher in fetchers_list:
         else:
             print("❌ 无数据")
     except Exception as e:
-        print(f"❌ 失败: {str(e)[:50]}")
+        print(f"❌ 失败: {str(e)}")
     finally:
         if source_name == "baostock" and hasattr(fetcher, 'is_logged_in') and fetcher.is_logged_in:
             fetcher.logout()

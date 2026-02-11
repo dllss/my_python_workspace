@@ -126,7 +126,7 @@ def scan_and_clean_suspended_data(data_dir: str, dry_run: bool = False) -> Dict:
         
         except Exception as e:
             stats['files_with_errors'] += 1
-            print(f"[{idx}/{stats['total_files']}] {stock_code}: ❌ 错误 - {str(e)[:50]}")
+            print(f"[{idx}/{stats['total_files']}] {stock_code}: ❌ 错误 - {str(e)}")
     
     print("-" * 80)
     print()

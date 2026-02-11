@@ -21,7 +21,7 @@ ADJUST_TYPE = "qfq"                 # 复权类型: qfq(前复权), hfq(后复�
 # ========== 批量获取配置 ==========
 DELAY_MIN = 2                       # 最小延迟（秒）
 DELAY_MAX = 4                       # 最大延迟（秒）
-BATCH_SIZE = 1000                   # 每批处理的股票数量（0表示处理全部）
+BATCH_SIZE = 0                   # 每批处理的股票数量（0表示处理全部）
 START_INDEX = 0                     # 从第几只股票开始（0表示从头开始）
 UPDATE_MODE = "tail"                # 更新模式: tail(只补充尾部), full(完全刷新), head_tail(补充头尾)
 
