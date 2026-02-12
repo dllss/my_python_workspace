@@ -48,7 +48,7 @@ from datetime import datetime, timedelta
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from config import OUTPUT_DIR, CN_DIR, ADJUST_TYPE
+from config import OUTPUT_DIR, CN_DIR, STOCK_LIST_FILE, ADJUST_TYPE
 from fetchers import MultiSourceFetcher
 from utils import save_dataframe, get_safe_end_date, filter_suspended_trading_data, MetadataManager
 
@@ -72,7 +72,7 @@ def get_stock_name(stock_code: str) -> str:
     """
     try:
         import pandas as pd
-        stock_list_file = os.path.join(OUTPUT_DIR, CN_DIR, "stock_list.csv")
+        stock_list_file = os.path.join(OUTPUT_DIR, CN_DIR, STOCK_LIST_FILE)
         
         if os.path.exists(stock_list_file):
             df_list = pd.read_csv(stock_list_file, dtype={'code': str})

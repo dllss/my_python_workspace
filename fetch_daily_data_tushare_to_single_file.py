@@ -1,30 +1,32 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-批量获取所有A股当日行情数据（TuShare版）
-使用 TuShare 的批量接口一次性获取所有股票数据
+批量获取A股日线数据并保存为单个CSV文件（TuShare版）
+使用 TuShare 的批量接口获取数据，所有股票保存在一个CSV文件中（而非分散到 data/ 目录）
 
 使用方法：
     方式1（推荐）：获取所有股票
-        poetry run python fetch_daily_data_tushare.py --date 20260210
+        poetry run python fetch_daily_data_tushare_to_single_file.py --date 20260210
     
     方式2：获取单只股票
-        poetry run python fetch_daily_data_tushare.py --date 20260210 --code 000001
+        poetry run python fetch_daily_data_tushare_to_single_file.py --date 20260210 --code 000001
     
     方式3：获取多只股票
-        poetry run python fetch_daily_data_tushare.py --date 20260210 --codes 000001,600519,000002
+        poetry run python fetch_daily_data_tushare_to_single_file.py --date 20260210 --codes 000001,600519,000002
     
-    方式4：使用 Makefile（需要修改 Makefile 传入日期）
-        make daily-tushare
+    方式4：指定输出文件名
+        poetry run python fetch_daily_data_tushare_to_single_file.py --date 20260210 --output my_data.csv
+    
+    方式5：组合使用
+        poetry run python fetch_daily_data_tushare_to_single_file.py --date 20260210 --codes 000001,600519 --output selected_stocks.csv
 
 主要优势：
     ✅ 一次性获取所有股票数据（无需逐个轮询）
     ✅ 速度快（几秒内完成，而非几小时）
-    ✅ 无需延迟（批量接口不会触发限流）
-    ✅ 自动更新元数据
-    ✅ 网络稳定（无需访问东方财富）
-    ✅ 数据质量高
+    ✅ 所有数据保存在一个CSV文件中（方便分析）
+    ✅ 不修改原有的 data 文件夹
     ✅ 支持指定股票代码
+    ✅ 支持自定义输出文件名
 
 配置要求：
     ⚠️ 需要 TuShare Token（注册即可免费获得）
@@ -32,14 +34,14 @@
     ⚠️ 建议在 17:00 之后运行（TuShare 数据在 15:00-17:00 更新）
 
 Token 配置方式：
-    方式1（推荐）：设置环境变量
-        export TUSHARE_TOKEN="你的token"
-    
-    方式2：在 config.py 中配置
+    方式1（推荐）：在 config.py 中配置
         TUSHARE_TOKEN = "你的token"
     
+    方式2：设置环境变量
+        export TUSHARE_TOKEN="你的token"
+    
     方式3：在命令行参数中指定
-        python fetch_daily_data_tushare.py --token "你的token"
+        python fetch_daily_data_tushare_to_single_file.py --token "你的token"
 
 获取 Token：
     1. 注册账号: https://tushare.pro/register
@@ -50,6 +52,8 @@ Token 配置方式：
     --token      TuShare API Token（可选，优先从 config.py 读取）
     --code       单个股票代码（可选），例如: 000001
     --codes      多个股票代码（可选），逗号分隔，例如: 000001,600519,000002
+    --output     输出文件名（可选），默认为: all_stocks_YYYYMMDD.csv
+    --no-filter  不过滤停牌数据（可选），默认会过滤停牌数据
 """
 
 import os
@@ -69,7 +73,7 @@ except ImportError:
     sys.exit(1)
 
 from config import OUTPUT_DIR, CN_DIR, STOCK_LIST_FILE
-from utils import MetadataManager, save_dataframe, get_safe_end_date, filter_suspended_trading_data
+from utils import filter_suspended_trading_data
 
 # ========== 日志配置 ==========
 logging.basicConfig(
@@ -122,7 +126,7 @@ def fetch_all_stocks_daily_data_tushare(
         pro = ts.pro_api(token)
         
         logger.info("="*80)
-        logger.info("TuShare 批量获取A股日线数据")
+        logger.info("TuShare 批量获取A股日线数据（保存为单个CSV文件）")
         logger.info("="*80)
         logger.info(f"目标日期: {target_date}")
         logger.info(f"数据源: TuShare Pro (官方接口)")
@@ -381,97 +385,16 @@ def supplement_stock_names(df: pd.DataFrame, token: str) -> pd.DataFrame:
         return df
 
 
-def process_and_save_daily_data(
-    df: pd.DataFrame,
-    target_date: str,
-    metadata_mgr: MetadataManager
-) -> Tuple[int, int, int]:
-    """
-    处理并保存每日数据到各个股票文件
-    
-    Args:
-        df: 标准格式的数据
-        target_date: 目标日期
-        metadata_mgr: 元数据管理器
-    
-    Returns:
-        Tuple[int, int, int]: (成功数, 跳过数, 失败数)
-    """
-    success_count = 0
-    skip_count = 0
-    failed_count = 0
-    failed_stocks = []
-    
-    total = len(df)
-    
-    logger.info("="*80)
-    logger.info("开始处理并保存数据")
-    logger.info("="*80)
-    
-    # 按股票代码分组
-    for stock_code, group_df in df.groupby('股票代码'):
-        try:
-            # 获取股票名称
-            stock_name = group_df['股票名称'].iloc[0] if not group_df['股票名称'].empty else ''
-            
-            # 检查是否需要更新
-            last_date = metadata_mgr.get_last_date(stock_code)
-            if last_date and last_date >= target_date:
-                skip_count += 1
-                continue
-            
-            # 过滤停牌数据
-            df_filtered, removed_count = filter_suspended_trading_data(group_df)
-            
-            # 如果过滤后为空，仍然更新元数据（避免重复拉取）
-            if df_filtered.empty:
-                metadata_mgr.update_last_date(stock_code, target_date)
-                skip_count += 1
-                continue
-            
-            # 保存数据
-            file_path = os.path.join(OUTPUT_DIR, CN_DIR, f"{stock_code}.csv")
-            
-            # 如果文件存在，合并数据
-            if os.path.exists(file_path):
-                try:
-                    df_existing = pd.read_csv(file_path, dtype={'股票代码': str})
-                    df_merged = pd.concat([df_existing, df_filtered], ignore_index=True)
-                    df_merged = df_merged.drop_duplicates(subset=['日期'], keep='last')
-                    df_merged = df_merged.sort_values('日期')
-                    save_dataframe(df_merged, file_path)
-                except Exception as e:
-                    logger.warning(f"合并数据失败 {stock_code}: {e}，将覆盖保存")
-                    save_dataframe(df_filtered, file_path)
-            else:
-                save_dataframe(df_filtered, file_path)
-            
-            # 更新元数据
-            metadata_mgr.update_last_date(stock_code, target_date)
-            
-            success_count += 1
-            
-            # 进度显示
-            if success_count % 100 == 0:
-                logger.info(f"进度: {success_count + skip_count}/{total} "
-                          f"(成功: {success_count}, 跳过: {skip_count})")
-            
-        except Exception as e:
-            failed_count += 1
-            failed_stocks.append((stock_code, stock_name, str(e)))
-            logger.error(f"处理失败 {stock_code} {stock_name}: {e}")
-    
-    return success_count, skip_count, failed_count, failed_stocks
-
-
 def main():
     """主函数"""
     # 解析命令行参数
-    parser = argparse.ArgumentParser(description='使用 TuShare 批量获取A股日线数据')
+    parser = argparse.ArgumentParser(description='批量获取A股日线数据并保存为单个CSV文件')
     parser.add_argument('--token', type=str, help='TuShare API Token')
     parser.add_argument('--date', type=str, required=True, help='目标日期（格式 YYYYMMDD），必填参数')
     parser.add_argument('--codes', type=str, help='股票代码列表（逗号分隔），例如: 000001,600519,000002')
     parser.add_argument('--code', type=str, help='单个股票代码，例如: 000001')
+    parser.add_argument('--output', type=str, help='输出文件名（可选），默认为: all_stocks_YYYYMMDD.csv')
+    parser.add_argument('--no-filter', action='store_true', help='不过滤停牌数据（默认会过滤）')
     args = parser.parse_args()
     
     # 获取 Token
@@ -484,26 +407,20 @@ def main():
         logger.error("")
         logger.error("请通过以下方式之一配置 Token:")
         logger.error("")
-        logger.error("方式1（推荐）：设置环境变量")
-        logger.error('  export TUSHARE_TOKEN="你的token"')
-        logger.error("")
-        logger.error("方式2：在 config.py 中添加")
+        logger.error("方式1（推荐）：在 config.py 中添加")
         logger.error('  TUSHARE_TOKEN = "你的token"')
         logger.error("")
+        logger.error("方式2：设置环境变量")
+        logger.error('  export TUSHARE_TOKEN="你的token"')
+        logger.error("")
         logger.error("方式3：命令行参数")
-        logger.error('  python fetch_daily_data_tushare.py --token "你的token"')
+        logger.error('  python fetch_daily_data_tushare_to_single_file.py --token "你的token"')
         logger.error("")
         logger.error("获取 Token:")
         logger.error("  1. 注册账号: https://tushare.pro/register")
         logger.error("  2. 获取 token: https://tushare.pro/user/token")
         logger.error("="*80)
         sys.exit(1)
-    
-    # 确保输出目录存在
-    os.makedirs(os.path.join(OUTPUT_DIR, CN_DIR), exist_ok=True)
-    
-    # 初始化元数据管理器
-    metadata_mgr = MetadataManager(os.path.join(OUTPUT_DIR, CN_DIR))
     
     # 获取数据
     df_raw, target_date = fetch_all_stocks_daily_data_tushare(token, args.date)
@@ -566,35 +483,50 @@ def main():
         # 替换原始数据
         df_raw = df_raw_filtered
     
-    # 保存原始数据到项目目录（CSV格式）
-    raw_file = f'tushare_raw_data_{target_date}.csv'
-    df_raw.to_csv(raw_file, index=False, encoding='utf-8-sig')
-    logger.info(f"原始数据已保存到: {raw_file}")
-    logger.info(f"  - 数据形状: {df_raw.shape}")
-    logger.info(f"  - 总股票数: {len(df_raw)}")
+    # 保存原始数据（用于检查）
+    logger.info("")
+    logger.info("="*80)
+    logger.info("保存原始数据")
+    logger.info("="*80)
+    raw_output_file = f'tushare_raw_daily_data_{target_date}.csv'
+    df_raw.to_csv(raw_output_file, index=False, encoding='utf-8-sig')
+    logger.info(f"✅ 原始数据已保存: {raw_output_file}")
+    logger.info(f"   文件大小: {os.path.getsize(raw_output_file) / 1024:.2f} KB")
+    logger.info(f"   数据行数: {len(df_raw)}")
     logger.info("")
     
     # 转换为标准格式
     logger.info("正在转换数据格式...")
     df_standard = convert_tushare_to_standard_format(df_raw, target_date)
     
-    # 补充股票名称（在保存之前）
+    # 补充股票名称
     df_standard = supplement_stock_names(df_standard, token)
     
-    # 保存标准格式数据到项目目录（CSV格式）
-    standard_file = f'tushare_standard_data_{target_date}.csv'
-    df_standard.to_csv(standard_file, index=False, encoding='utf-8-sig')
-    logger.info(f"标准格式数据已保存到: {standard_file}")
-    logger.info(f"  - 数据形状: {df_standard.shape}")
-    logger.info(f"  - 总股票数: {len(df_standard)}")
-    logger.info("")
+    # 过滤停牌数据（可选）
+    if not args.no_filter:
+        logger.info("")
+        logger.info("正在过滤停牌数据...")
+        original_count = len(df_standard)
+        df_filtered, removed_count = filter_suspended_trading_data(df_standard)
+        logger.info(f"✅ 过滤完成: 移除 {removed_count} 条停牌记录")
+        df_standard = df_filtered
     
-    # 处理并保存数据（暂时注释，不修改 data 文件夹）
-    # success_count, skip_count, failed_count, failed_stocks = process_and_save_daily_data(
-    #     df_standard,
-    #     target_date,
-    #     metadata_mgr
-    # )
+    # 确定输出文件名
+    if args.output:
+        output_file = args.output
+    else:
+        output_file = f'tushare_standard_daily_data_{target_date}.csv'
+    
+    # 保存标准格式数据
+    logger.info("")
+    logger.info("="*80)
+    logger.info("保存标准格式数据")
+    logger.info("="*80)
+    df_standard.to_csv(output_file, index=False, encoding='utf-8-sig')
+    
+    logger.info(f"✅ 标准格式数据已保存: {output_file}")
+    logger.info(f"   文件大小: {os.path.getsize(output_file) / 1024:.2f} KB")
+    logger.info(f"   数据行数: {len(df_standard)}")
     
     # 输出统计信息
     logger.info("")
@@ -603,22 +535,14 @@ def main():
     logger.info("="*80)
     logger.info(f"目标日期: {target_date}")
     logger.info(f"总股票数: {len(df_standard)}")
-    logger.info(f"数据已保存到文件:")
-    logger.info(f"  - 原始数据: {raw_file}")
-    logger.info(f"  - 标准格式: {standard_file}")
     logger.info("")
-    logger.info("⚠️  注意: 数据保存功能已暂时禁用（不修改 data 文件夹）")
-    logger.info("   如需保存到 data 文件夹，请取消注释 process_and_save_daily_data 调用")
-    # logger.info(f"成功保存: {success_count} 只")
-    # logger.info(f"跳过更新: {skip_count} 只（已是最新）")
-    # logger.info(f"失败数量: {failed_count} 只")
-    # 
-    # if failed_stocks:
-    #     logger.info("")
-    #     logger.info("失败列表:")
-    #     for stock_code, stock_name, reason in failed_stocks:
-    #         logger.info(f"  {stock_code} {stock_name}: {reason}")
-    
+    logger.info("输出文件:")
+    logger.info(f"  1. 原始数据: {raw_output_file} ({os.path.getsize(raw_output_file) / 1024:.2f} KB)")
+    logger.info(f"  2. 标准格式: {output_file} ({os.path.getsize(output_file) / 1024:.2f} KB)")
+    logger.info("")
+    logger.info("标准格式数据列:")
+    for i, col in enumerate(df_standard.columns, 1):
+        logger.info(f"  {i}. {col}")
     logger.info("="*80)
 
 

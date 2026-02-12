@@ -73,6 +73,7 @@ import pandas as pd
 from config import (
     OUTPUT_DIR,
     CN_DIR,
+    STOCK_LIST_FILE,
     START_DATE,
     END_DATE,
     ADJUST_TYPE,
@@ -102,7 +103,7 @@ logger = logging.getLogger(__name__)
 
 # ========== 初始化 ==========
 cn_dir = os.path.join(OUTPUT_DIR, CN_DIR)
-stock_list_file = os.path.join(cn_dir, "stock_list.csv")
+stock_list_file = os.path.join(cn_dir, STOCK_LIST_FILE)
 
 # ========== 检查并调整结束日期（18:30之前强制使用昨天） ==========
 SAFE_END_DATE, date_adjusted = get_safe_end_date(END_DATE)

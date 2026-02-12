@@ -1,18 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-批量获取所有A股当日行情数据（高效版）
-使用 AkShare 的批量接口一次性获取所有股票数据，而非逐个轮询
+批量获取所有A股当日行情数据（AkShare版）
+使用 AkShare 的批量接口一次性获取所有股票数据
+
+⚠️  注意：该脚本使用 AkShare 的东方财富接口，可能遇到网络/代理问题
+   推荐使用：make daily-tushare（TuShare版，更稳定）
 
 使用方法：
     方式1（推荐）：
-        make run-daily
+        make daily-tushare  # 使用 TuShare（更稳定）
     
     方式2：
-        poetry run python fetch_daily_all_stocks.py
+        make daily  # 使用 AkShare（可能遇到网络问题）
     
     方式3：
-        python fetch_daily_all_stocks.py  # 需要先激活虚拟环境
+        poetry run python fetch_daily_data_akshare.py  # 直接运行
 
 主要优势：
     ✅ 一次性获取所有股票数据（无需逐个轮询）

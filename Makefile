@@ -1,4 +1,4 @@
-.PHONY: list history daily daily-tushare single install update clean check-date check-sources rebuild-metadata analyze-names clean-suspended install-tushare
+.PHONY: list history daily daily-akshare daily-tushare single install update clean check-date check-sources rebuild-metadata analyze-names clean-suspended install-tushare
 
 # 获取股票列表（第一步）
 list:
@@ -8,11 +8,15 @@ list:
 history:
 	@poetry run python fetch_historical_data.py
 
-# 每日增量更新（日常使用，推荐）
+# 每日增量更新（推荐，使用 TuShare）
 daily:
-	@poetry run python fetch_daily_data.py
+	@poetry run python fetch_daily_data_tushare.py
 
-# 每日增量更新（TuShare版，更稳定）
+# 每日增量更新（AkShare版，备用，可能遇到网络问题）
+daily-akshare:
+	@poetry run python fetch_daily_data_akshare.py
+
+# 每日增量更新（TuShare版，与 daily 相同）
 daily-tushare:
 	@poetry run python fetch_daily_data_tushare.py
 

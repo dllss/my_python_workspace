@@ -27,7 +27,7 @@ import random
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from config import OUTPUT_DIR, CN_DIR, START_DATE, DELAY_MIN, DELAY_MAX
+from config import OUTPUT_DIR, CN_DIR, STOCK_LIST_FILE, START_DATE, DELAY_MIN, DELAY_MAX
 from fetchers import MultiSourceFetcher
 from utils import save_dataframe, get_safe_end_date
 
@@ -108,7 +108,7 @@ def main():
     
     # 构建数据目录路径
     data_dir = os.path.join(OUTPUT_DIR, CN_DIR)
-    stock_list_file = os.path.join(data_dir, "stock_list.csv")
+    stock_list_file = os.path.join(data_dir, STOCK_LIST_FILE)
     
     if not os.path.exists(stock_list_file):
         print(f"❌ 股票列表文件不存在: {stock_list_file}")

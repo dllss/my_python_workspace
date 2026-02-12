@@ -12,13 +12,13 @@
 
 import os
 import pandas as pd
-from config import OUTPUT_DIR, CN_DIR
+from config import OUTPUT_DIR, CN_DIR, STOCK_LIST_FILE
 from utils import MetadataManager
 
 
 def main():
     cn_dir = os.path.join(OUTPUT_DIR, CN_DIR)
-    stock_list_file = os.path.join(cn_dir, "stock_list.csv")
+    stock_list_file = os.path.join(cn_dir, STOCK_LIST_FILE)
     
     print("=" * 60)
     print("重建元数据文件")
